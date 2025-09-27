@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mini Dino Runner</title>
+  <style>
+    :root { --bg:#1e1f26; --fg:#f2f2f2; --accent:#ffb703; --ground:#2a2b34; }
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial}
+    .wrap{max-width:900px;margin:0 auto;padding:16px}
+    h1{font-size:18px;margin:0 0 8px;opacity:.85}
+    #game{display:block;width:100%;aspect-ratio:16/9;background:linear-gradient(#20222b,#1b1c23);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.35);image-rendering:pixelated}
+    .hud{display:flex;justify-content:space-between;align-items:center;margin:10px 2px 0;font-weight:600;opacity:.9}
+    .btn{user-select:none;background:var(--accent);color:#0b0b0b;border-radius:10px;padding:8px 12px;font-weight:700;cursor:pointer}
+    .hint{opacity:.7;font-size:13px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Mini Dino Runner</h1>
+    <canvas id="game" width="960" height="540"></canvas>
+    <div class="hud">
+      <div class="hint">Espace/↑ pour sauter • R pour rejouer • Tap = saut</div>
+      <div class="btn" id="restart" aria-label="Rejouer">Rejouer</div>
+    </div>
+  </div>
+
+  <script>
+  (() => {
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    // --- Utils
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    const rand  = (a,b) => a + Math.random()*(b-a);
+
+    // --- World
+    const W = canvas.width, H = canvas.height;
+    const GROUND_Y = H * 0.82;
+    const gravity = 2200;          // px/s²
+    let speed = 420;               // px/s base speed (obstacles)
+    let gameOver = false, started = false;
+
+    // --- Player
+    const player = {
+      x: W*0.18, y: GROUND_Y, w: 44, h: 48,
+      vy: 0, onGround: true, jumpStrength: 820,
+      tick(dt){
+        // gravity
+        this.vy += gravity*dt;
+        this.y  += this.vy*dt;
+        if (this.y > GROUND_Y) { this.y = GROUND_Y; this.vy = 0; this.onGround = true; }
+      },
+      jump(){
+        if (this.onGround && !gameOver) {
+          this.onGround = false;
+          this.vy = -this.jumpStrength;
+          started = true;
+        }
+      },
+      rect(){ return {x:this.x, y:this.y-this.h, w:this.w, h:this.h}; }
+    };
+
+    // --- Obstacles & clouds
+    let obstacles = [], clouds = [];
+    let score = 0, hi = 0;
+
+    function reset() {
+      obstacles = [];
+      clouds = [];
+      score = 0;
+      speed = 420;
+      gameOver = false;
+      started = false;
+      player.x = W*0.18; player.y = GROUND_Y; player.vy = 0; player.onGround = true;
+      spawnClouds();
+    }
+
+    function spawnObstacle() {
+      const h = rand(38, 70);
+      const w = rand(24, 44);
+      obstacles.push({ x: W + rand(0, 80), y: GROUND_Y, w, h, passed:false });
+    }
+
+    function spawnClouds() {
+      for (let i=0;i<6;i++){
+        clouds.push({x: rand(0,W), y: rand(H*0.1, H*0.5), s: rand(12, 28)});
+      }
+    }
+
+    function update(dt) {
+      if (!gameOver && started) {
+        // Increase difficulty over time
+        speed += dt * 6;
+
+        // Spawn logic
+        if (obstacles.length === 0 || (W - obstacles.at(-1).x) > rand(160, 340)) {
+          spawnObstacle();
+        }
+        // Move obstacles
+        obstacles.forEach(o => o.x -= speed*dt);
+        obstacles = obstacles.filter(o => o.x + o.w > -4);
+
+        // Score
+        obstacles.forEach(o => { if (!o.passed && o.x + o.w < player.x) { o.passed = true; score += 1; }});
+
+        // Player physics
+        player.tick(dt);
+
+        // Collisions
+        for (const o of obstacles) {
+          if (rectsOverlap(player.rect(), {x:o.x, y:o.y - o.h, w:o.w, h:o.h})) {
+            gameOver = true;
+            hi = Math.max(hi, score);
+            break;
+          }
+        }
+      }
+
+      // clouds parallax
+      clouds.forEach(c => { c.x -= (speed*0.25 + c.s)*dt; if (c.x < -80) { c.x = W + rand(0,200); c.y = rand(H*0.1, H*0.6);} });
+    }
+
+    function rectsOverlap(a,b){
+      return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    }
+
+    // --- Rendering
+    function draw() {
+      // sky
+      const grd = ctx.createLinearGradient(0,0,0,H);
+      grd.addColorStop(0,'#20222b'); grd.addColorStop(1,'#1b1c23');
+      ctx.fillStyle = grd; ctx.fillRect(0,0,W,H);
+
+      // clouds
+      ctx.fillStyle = 'rgba(255,255,255,.15)';
+      clouds.forEach(c => drawCloud(c.x, c.y, c.s));
+
+      // ground
+      ctx.fillStyle = '#2a2b34';
+      ctx.fillRect(0, GROUND_Y+2, W, H - (GROUND_Y+2));
+      // track
+      ctx.strokeStyle = '#3a3b46'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(0, GROUND_Y+0.5); ctx.lineTo(W, GROUND_Y+0.5); ctx.stroke();
+
+      // player (simple hex-bolt style)
+      drawPlayer();
+
+      // obstacles (cactus-like)
+      ctx.fillStyle = '#ffb703';
+      obstacles.forEach(o => {
+        ctx.fillRect(o.x, o.y - o.h, o.w, o.h);
+        // spikes
+        ctx.beginPath();
+        ctx.moveTo(o.x, o.y - o.h);
+        ctx.lineTo(o.x + o.w*0.5, o.y - o.h - 8);
+        ctx.lineTo(o.x + o.w, o.y - o.h);
+        ctx.closePath();
+        ctx.fill();
+      });
+
+      // Score
+      ctx.fillStyle = '#eaeaea';
+      ctx.font = 'bold 24px system-ui,Segoe UI,Roboto';
+      ctx.textAlign = 'right';
+      ctx.fillText(String(score).padStart(5,'0'), W-16, 40);
+      ctx.font = 'bold 16px system-ui';
+      ctx.fillText(`HI ${String(hi).padStart(5,'0')}`, W-16, 64);
+
+      if (!started && !gameOver) {
+        drawCenterText('Appuie sur ESPACE / ↑ ou TAP pour démarrer', 22, '#ffffffcc');
+      }
+      if (gameOver) {
+        drawCenterText('💥 Perdu !  R pour rejouer', 28, '#ffffffee');
+      }
+    }
+
+    function drawPlayer(){
+      const r = player.rect();
+      // body
+      ctx.fillStyle = '#f2f2f2';
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+      // face
+      ctx.fillStyle = '#0b0b0b';
+      ctx.fillRect(r.x + r.w*0.65, r.y + r.h*0.28, 6, 6);
+      // legs (simple animation)
+      const t = performance.now()/120;
+      const k = Math.sin(t)*(player.onGround?6:2);
+      ctx.fillStyle = '#cfd0d4';
+      ctx.fillRect(r.x+6, r.y+r.h-8, 12, 8+k);
+      ctx.fillRect(r.x+r.w-18, r.y+r.h-8, 12, 8-k);
+      // shadow
+      ctx.fillStyle = 'rgba(0,0,0,.25)';
+      const shw = clamp(46 - Math.abs(player.y-GROUND_Y)*0.08, 18, 46);
+      ctx.beginPath(); ctx.ellipse(player.x+player.w/2, GROUND_Y+10, shw, 6, 0, 0, Math.PI*2); ctx.fill();
+    }
+
+    function drawCloud(x,y,s){
+      ctx.beginPath();
+      ctx.arc(x, y, s, 0, Math.PI*2);
+      ctx.arc(x+s*0.9, y+3, s*0.7, 0, Math.PI*2);
+      ctx.arc(x-s*0.9, y+4, s*0.6, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    function drawCenterText(text, size=24, color='#fff'){
+      ctx.fillStyle = color; ctx.textAlign='center';
+      ctx.font = `bold ${size}px system-ui,Segoe UI,Roboto`;
+      ctx.fillText(text, W/2, H*0.35);
+      ctx.textAlign='left';
+    }
+
+    // --- Loop
+    let last = performance.now();
+    function loop(now){
+      const dt = Math.min(0.033, (now-last)/1000); last = now;
+      update(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    // --- Controls
+    function handleJump(){ player.jump(); }
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); handleJump(); }
+      if (e.code === 'KeyR') reset();
+    }, {passive:false});
+    canvas.addEventListener('pointerdown', () => handleJump(), {passive:true});
+    document.getElementById('restart').addEventListener('click', reset);
+
+    reset();
+  })();
+  </script>
+</body>
+</html>
