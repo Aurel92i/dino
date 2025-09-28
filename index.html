@@ -188,10 +188,23 @@
       width: calc(100% - 24px);
       height: calc(100% - 28px);
       border-radius: 12px;
-      background:
-        linear-gradient(180deg, #fce0b7 0 42%, #e03d2f 42% 58%, #1657cf 58% 88%, #0b2f6e 88% 100%);
+      background: linear-gradient(180deg, #1b75d1 0 70%, #0f4fa8 70% 100%);
       border: 3px solid #0f275a;
       box-shadow: inset -4px 0 0 rgba(0, 0, 0, 0.12);
+    }
+    .gazier__body::after {
+      content: "GAZIER";
+      position: absolute;
+      top: 54%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 2px 10px;
+      border-radius: 6px;
+      background: rgba(10, 30, 72, 0.78);
+      color: #fff;
+      font-size: clamp(10px, 2.6vw, 14px);
+      font-weight: 700;
+      letter-spacing: 1.2px;
     }
     .gazier__head {
       top: 0;
@@ -226,8 +239,8 @@
     .gazier__cap {
       position: absolute;
       top: -18px;
-      left: 8px;
-      width: calc(100% - 16px);
+      left: 6px;
+      width: calc(100% - 12px);
       height: 40px;
       background: linear-gradient(#e83e2f, #aa1616);
       border-radius: 20px 20px 60% 60%;
@@ -238,6 +251,7 @@
       font-weight: 700;
       color: #fff;
       letter-spacing: 1px;
+      font-size: clamp(10px, 2.6vw, 14px);
       text-shadow: 0 1px 0 #4c0406;
     }
     .gazier__arm {
@@ -313,8 +327,8 @@
     #gazier-runner .obstacle {
       position: absolute;
       bottom: 46px;
-      width: clamp(38px, 8vw, 54px);
-      height: clamp(70px, 22vw, 140px);
+      width: clamp(38px, 8vw, 52px);
+      height: clamp(56px, 18vw, 110px);
       background: linear-gradient(180deg, #39b24a 0 12%, #2f9c40 12% 88%, #1e6c2c 88% 100%);
       border-radius: 6px 6px 4px 4px;
       border: 3px solid #1f6f2d;
@@ -322,10 +336,10 @@
       z-index: 3;
     }
     #gazier-runner .obstacle.little {
-      height: clamp(60px, 18vw, 120px);
+      height: clamp(48px, 16vw, 92px);
     }
     #gazier-runner .obstacle.tall {
-      height: clamp(90px, 26vw, 160px);
+      height: clamp(72px, 22vw, 130px);
     }
     @media (min-width: 720px) {
       #gazier-runner {
@@ -382,7 +396,7 @@
     <div class="gazier" data-gazier>
       <div class="gazier__body"></div>
       <div class="gazier__head"></div>
-      <div class="gazier__cap">G</div>
+      <div class="gazier__cap">Gazier</div>
       <div class="gazier__arm gazier__arm--front"></div>
       <div class="gazier__arm gazier__arm--back"></div>
       <div class="gazier__leg gazier__leg--front"></div>
