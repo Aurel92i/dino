@@ -1,190 +1,506 @@
-<style>
-  #dino-game {
-    position: relative;
-    width: 100%;
-    max-width: 480px;
-    height: 260px;
-    background: linear-gradient(#cce6ff, #f0f8ff);
-    border: 2px solid #333;
-    border-radius: 8px;
-    overflow: hidden;
-    margin: 0 auto;
-  }
-  .ground {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 40px;
-    background: #6b8e23;
-  }
-  .dino {
-    position: absolute;
-    left: 40px;
-    bottom: 40px;
-    width: 40px;
-    height: 40px;
-    background: #333;
-    border-radius: 6px;
-  }
-  .dino::after {
-    content: "";
-    position: absolute;
-    top: 10px;
-    left: 24px;
-    width: 8px;
-    height: 8px;
-    background: #fff;
-    border-radius: 50%;
-  }
-  .cactus {
-    position: absolute;
-    bottom: 40px;
-    right: -40px;
-    width: 24px;
-    height: 50px;
-    background: #2e8b57;
-    border-radius: 3px;
-  }
-  .hud {
-    position: absolute;
-    top: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255,255,255,0.8);
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: bold;
-  }
-  .message {
-    position: absolute;
-    bottom: 50%;
-    left: 50%;
-    transform: translate(-50%, 50%);
-    background: rgba(255,255,255,0.9);
-    padding: 10px 16px;
-    border-radius: 6px;
-    font-size: 14px;
-    text-align: center;
-  }
-</style>
-
-<div id="dino-game">
-  <div class="hud">Niveau <span id="level">1</span> | Score <span id="score">0</span></div>
-  <div class="message" id="msg">Tapez l'écran pour sauter</div>
-  <div class="ground"></div>
-  <div class="dino" id="dino"></div>
-</div>
-
-<script>
-  const game = document.getElementById("dino-game");
-  const dino = document.getElementById("dino");
-  const scoreEl = document.getElementById("score");
-  const levelEl = document.getElementById("level");
-  const msg = document.getElementById("msg");
-
-  let isJumping = false;
-  let dinoY = 40;
-  let velocityY = 0;
-  let gravity = -0.6;
-  let score = 0;
-  let level = 1;
-  let speed = 3;
-  let obstacles = [];
-  let playing = false;
-
-  function jump() {
-    if (!isJumping && playing) {
-      velocityY = 12; // saut simple
-      isJumping = true;
+<!-- moreapp-dino.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Mini Dino Runner</title>
+  <style>
+    :root {
+      color-scheme: light;
     }
-    if (!playing) {
-      startGame();
+    * {
+      box-sizing: border-box;
     }
-  }
-
-  function startGame() {
-    score = 0;
-    level = 1;
-    speed = 3;
-    obstacles.forEach(o => o.remove());
-    obstacles = [];
-    msg.style.display = "none";
-    playing = true;
-    requestAnimationFrame(update);
-  }
-
-  function gameOver() {
-    playing = false;
-    msg.textContent = "Perdu ! Tapez pour rejouer";
-    msg.style.display = "block";
-  }
-
-  function spawnCactus() {
-    const cactus = document.createElement("div");
-    cactus.className = "cactus";
-    cactus.style.right = "-40px";
-    game.appendChild(cactus);
-    obstacles.push(cactus);
-  }
-
-  function update() {
-    if (!playing) return;
-
-    // Update dino
-    dinoY += velocityY;
-    velocityY += gravity;
-    if (dinoY <= 40) {
-      dinoY = 40;
-      velocityY = 0;
-      isJumping = false;
+    body {
+      margin: 0;
+      padding: clamp(16px, 6vw, 40px);
+      background: linear-gradient(180deg, #f4f7fb, #d9e5f4);
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100dvh;
     }
-    dino.style.bottom = dinoY + "px";
+    #dino-runner {
+      position: relative;
+      width: min(460px, 96vw);
+      height: clamp(220px, 52vh, 320px);
+      background: linear-gradient(#fefefe, #eef2f6 68%);
+      border: 2px solid #3a4d5e;
+      border-radius: 18px;
+      overflow: hidden;
+      user-select: none;
+      touch-action: manipulation;
+      box-shadow: 0 18px 42px rgba(28, 54, 80, 0.18);
+    }
+    #dino-runner[data-state="over"] {
+      filter: grayscale(0.35);
+    }
+    #dino-runner .sky {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(#e6f1fc, #fefefe 65%);
+      z-index: 0;
+    }
+    #dino-runner .cloud {
+      position: absolute;
+      top: 12%;
+      width: 18%;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 16px;
+      box-shadow: 16px 4px 0 rgba(255, 255, 255, 0.7), 32px 8px 0 rgba(255, 255, 255, 0.6);
+      filter: blur(0.2px);
+      pointer-events: none;
+    }
+    #dino-runner .cloud:nth-child(2) {
+      top: 26%;
+      width: 14%;
+      height: 20px;
+      opacity: 0.9;
+    }
+    #dino-runner .ground-wrapper {
+      position: absolute;
+      inset: auto 0 0;
+      height: 28px;
+      overflow: hidden;
+      z-index: 2;
+    }
+    #dino-runner .ground {
+      position: absolute;
+      bottom: 0;
+      width: 200%;
+      height: 28px;
+      background: repeating-linear-gradient(-45deg, #757575 0 6px, #868686 6px 12px);
+    }
+    #dino-runner .line {
+      position: absolute;
+      top: -6px;
+      left: 0;
+      width: 200%;
+      height: 6px;
+      background: repeating-linear-gradient(90deg, transparent 0 28px, rgba(84, 84, 84, 0.45) 28px 52px);
+    }
+    #dino-runner .dino {
+      position: absolute;
+      left: 14%;
+      bottom: 28px;
+      width: clamp(40px, 6vw, 54px);
+      height: clamp(42px, 6.2vw, 58px);
+      background: #3d3d3d;
+      border-radius: 6px;
+      z-index: 4;
+      transition: filter 120ms ease-in-out;
+    }
+    #dino-runner .dino::before {
+      content: "";
+      position: absolute;
+      top: 22%;
+      left: 62%;
+      width: 22%;
+      height: 22%;
+      border-radius: 50%;
+      background: #f2f2f2;
+      box-shadow: -4px 14px 0 -4px #f2f2f2;
+    }
+    #dino-runner .dino::after {
+      content: "";
+      position: absolute;
+      top: 32%;
+      left: 72%;
+      width: 12%;
+      height: 12%;
+      border-radius: 50%;
+      background: #202020;
+    }
+    #dino-runner .obstacle {
+      position: absolute;
+      bottom: 28px;
+      width: 32px;
+      height: 48px;
+      background: #3f6543;
+      border-radius: 4px 4px 2px 2px;
+      box-shadow: inset -4px 0 0 rgba(0, 0, 0, 0.15);
+      z-index: 3;
+    }
+    #dino-runner .obstacle.little {
+      height: 36px;
+    }
+    #dino-runner .obstacle.tall {
+      height: clamp(50px, 7vw, 70px);
+      background: #345938;
+    }
+    #dino-runner .hud {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: clamp(14px, 3.6vw, 18px);
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+    #dino-runner .hud-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-width: 148px;
+      padding: 6px 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.82);
+      color: #1f2d3d;
+      text-transform: uppercase;
+      box-shadow: 0 8px 20px rgba(27, 66, 104, 0.14);
+    }
+    #dino-runner .hud-item .value {
+      font-family: "Roboto Mono", "Courier New", monospace;
+      font-variant-numeric: tabular-nums;
+      color: #0f6c44;
+    }
+    #dino-runner .message {
+      position: absolute;
+      inset: auto 12% 14%;
+      padding: 14px 18px;
+      background: rgba(255, 255, 255, 0.86);
+      border-radius: 14px;
+      color: #24303f;
+      font-size: clamp(14px, 3.8vw, 18px);
+      line-height: 1.45;
+      text-align: center;
+      z-index: 12;
+      box-shadow: 0 14px 26px rgba(0, 0, 0, 0.12);
+      transition: opacity 220ms ease;
+    }
+    #dino-runner[data-hint="hidden"] .message {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #dino-runner .flash {
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.55);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease-out;
+      z-index: 9;
+    }
+    #dino-runner[data-hit="true"] .flash {
+      opacity: 1;
+    }
+    @media (min-width: 720px) {
+      #dino-runner {
+        width: 520px;
+        height: 320px;
+      }
+      #dino-runner .hud {
+        flex-direction: row;
+      }
+      #dino-runner .hud-item {
+        min-width: 140px;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #dino-runner {
+        animation-duration: 0s !important;
+        transition-duration: 0s !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="dino-runner" data-state="ready" data-hint="visible" data-hit="false">
+    <div class="sky">
+      <div class="cloud" style="left:18%;"></div>
+      <div class="cloud" style="left:64%;"></div>
+    </div>
+    <div class="hud">
+      <div class="hud-item">
+        <span class="label">Niveau</span>
+        <span class="value" data-level>01</span>
+      </div>
+      <div class="hud-item">
+        <span class="label">Points</span>
+        <span class="value" data-score>00000</span>
+      </div>
+      <div class="hud-item">
+        <span class="label">Record</span>
+        <span class="value" data-best-level>01</span>
+      </div>
+    </div>
+    <div class="message" data-message>
+      Touchez l'écran pour sauter. Bonne course !
+    </div>
+    <div class="flash"></div>
+    <div class="ground-wrapper">
+      <div class="line"></div>
+      <div class="ground"></div>
+    </div>
+    <div class="dino" data-dino></div>
+  </div>
 
-    // Update obstacles
-    obstacles.forEach((cactus, index) => {
-      let x = parseInt(cactus.style.right);
-      x += speed;
-      cactus.style.right = x + "px";
+  <script>
+    (function initDinoRunner() {
+      const container = document.getElementById('dino-runner');
+      if (!container || container.dataset.ready === 'true') {
+        return;
+      }
+      container.dataset.ready = 'true';
 
-      // Collision
-      const dinoRect = dino.getBoundingClientRect();
-      const cactusRect = cactus.getBoundingClientRect();
-      if (
-        dinoRect.right > cactusRect.left &&
-        dinoRect.left < cactusRect.right &&
-        dinoRect.bottom > cactusRect.top
-      ) {
-        gameOver();
+      const dinoEl = container.querySelector('[data-dino]');
+      const groundEl = container.querySelector('.ground');
+      const messageEl = container.querySelector('[data-message]');
+      const scoreEl = container.querySelector('[data-score]');
+      const levelEl = container.querySelector('[data-level]');
+      const bestLevelEl = container.querySelector('[data-best-level]');
+      const flashEl = container.querySelector('.flash');
+
+      const GROUND_HEIGHT = 28;
+      const BASE_SPEED = 280;
+      const MAX_SPEED = 680;
+      const SPEED_ACCEL = 70;
+      const GRAVITY = 2200;
+      const JUMP_VELOCITY = 760;
+      const LEVEL_INTERVAL = 450;
+      const OBSTACLE_GAP_MIN = 760;
+      const OBSTACLE_GAP_MAX = 1240;
+
+      let worldWidth = container.clientWidth;
+      let lastTime = null;
+      let speed = BASE_SPEED;
+      let score = 0;
+      let level = 1;
+      let bestLevel = Number(localStorage.getItem('moreapp:dino:best-level') || 1);
+      let dinoY = 0;
+      let velocityY = 0;
+      let nextObstacleIn = randomGap();
+      let obstacles = [];
+      let gameState = 'ready';
+
+      levelEl.textContent = formatLevel(level);
+      bestLevelEl.textContent = formatLevel(bestLevel);
+      scoreEl.textContent = formatScore(score);
+
+      function randomGap() {
+        return Math.random() * (OBSTACLE_GAP_MAX - OBSTACLE_GAP_MIN) + OBSTACLE_GAP_MIN;
       }
 
-      // remove off-screen
-      if (x > game.offsetWidth + 50) {
-        cactus.remove();
-        obstacles.splice(index, 1);
-        score++;
-        scoreEl.textContent = score;
+      function formatScore(value) {
+        return String(Math.floor(value)).padStart(5, '0');
+      }
 
-        // Niveaux
-        if (score % 5 === 0) {
-          level++;
-          levelEl.textContent = level;
-          speed += 0.5;
+      function formatLevel(value) {
+        return String(Math.max(1, Math.floor(value))).padStart(2, '0');
+      }
+
+      function setMessage(text) {
+        messageEl.textContent = text;
+      }
+
+      function hideHint() {
+        container.dataset.hint = 'hidden';
+      }
+
+      function showHint() {
+        container.dataset.hint = 'visible';
+      }
+
+      function resetGame() {
+        obstacles.forEach((item) => item.el.remove());
+        obstacles = [];
+        speed = BASE_SPEED;
+        score = 0;
+        level = 1;
+        nextObstacleIn = randomGap();
+        dinoY = 0;
+        velocityY = 0;
+        updateDino();
+        updateScore(0);
+        updateLevel(true);
+        container.dataset.state = 'running';
+        container.dataset.hit = 'false';
+        hideHint();
+        gameState = 'running';
+        lastTime = null;
+        window.requestAnimationFrame(step);
+      }
+
+      function updateScore(deltaSeconds) {
+        score += deltaSeconds * 100;
+        if (score < 0) score = 0;
+        scoreEl.textContent = formatScore(score);
+        updateLevel();
+      }
+
+      function updateLevel(force) {
+        const computed = Math.floor(score / LEVEL_INTERVAL) + 1;
+        if (force || computed !== level) {
+          level = computed;
+          levelEl.textContent = formatLevel(level);
+          if (level > bestLevel) {
+            bestLevel = level;
+            bestLevelEl.textContent = formatLevel(bestLevel);
+            localStorage.setItem('moreapp:dino:best-level', bestLevel);
+          }
         }
       }
-    });
 
-    // Spawn cactus aléatoire
-    if (Math.random() < 0.02) {
-      spawnCactus();
-    }
+      function updateDino() {
+        const bottom = GROUND_HEIGHT + dinoY;
+        dinoEl.style.bottom = bottom + 'px';
+      }
 
-    requestAnimationFrame(update);
-  }
+      function spawnObstacle() {
+        const obstacleEl = document.createElement('div');
+        obstacleEl.className = 'obstacle';
+        if (Math.random() > 0.6) {
+          obstacleEl.classList.add('little');
+        } else if (Math.random() > 0.6) {
+          obstacleEl.classList.add('tall');
+        }
+        container.appendChild(obstacleEl);
+        const rect = obstacleEl.getBoundingClientRect();
+        const obstacle = {
+          el: obstacleEl,
+          width: rect.width || 32,
+          height: rect.height || 48,
+          x: worldWidth
+        };
+        obstacleEl.style.transform = 'translateX(' + Math.round(obstacle.x) + 'px)';
+        obstacles.push(obstacle);
+      }
 
-  // Contrôles
-  game.addEventListener("click", jump);
-  document.addEventListener("keydown", e => {
-    if (e.code === "Space" || e.code === "ArrowUp") jump();
-  });
-</script>
+      function updateObstacles(deltaSeconds) {
+        const distance = speed * deltaSeconds;
+        obstacles = obstacles.filter((obstacle) => {
+          obstacle.x -= distance;
+          if (obstacle.x + obstacle.width < 0) {
+            obstacle.el.remove();
+            return false;
+          }
+          obstacle.el.style.transform = 'translateX(' + Math.round(obstacle.x) + 'px)';
+          return true;
+        });
+        nextObstacleIn -= distance;
+        if (nextObstacleIn <= 0) {
+          spawnObstacle();
+          nextObstacleIn = randomGap();
+        }
+      }
+
+      function updateGround(deltaSeconds) {
+        const shift = (groundEl._shift || 0) - speed * deltaSeconds;
+        const loopPoint = worldWidth;
+        groundEl._shift = shift <= -loopPoint ? shift + loopPoint : shift;
+        groundEl.style.transform = 'translateX(' + Math.round(groundEl._shift) + 'px)';
+      }
+
+      function updatePhysics(deltaSeconds) {
+        velocityY -= GRAVITY * deltaSeconds;
+        dinoY += velocityY * deltaSeconds;
+        if (dinoY <= 0) {
+          dinoY = 0;
+          velocityY = 0;
+        }
+        updateDino();
+      }
+
+      function checkCollisions() {
+        const dinoRect = dinoEl.getBoundingClientRect();
+        return obstacles.some((obstacle) => {
+          const rect = obstacle.el.getBoundingClientRect();
+          return (
+            rect.left < dinoRect.right - 4 &&
+            rect.right > dinoRect.left + 4 &&
+            rect.top < dinoRect.bottom - 6 &&
+            rect.bottom > dinoRect.top + 6
+          );
+        });
+      }
+
+      function step(timestamp) {
+        if (gameState !== 'running') {
+          return;
+        }
+        if (lastTime === null) {
+          lastTime = timestamp;
+          window.requestAnimationFrame(step);
+          return;
+        }
+        const deltaSeconds = (timestamp - lastTime) / 1000;
+        lastTime = timestamp;
+
+        updatePhysics(deltaSeconds);
+        updateObstacles(deltaSeconds);
+        updateGround(deltaSeconds);
+        updateScore(deltaSeconds);
+        speed = Math.min(speed + SPEED_ACCEL * deltaSeconds, MAX_SPEED);
+
+        if (checkCollisions()) {
+          onGameOver();
+          return;
+        }
+
+        window.requestAnimationFrame(step);
+      }
+
+      function onGameOver() {
+        gameState = 'over';
+        container.dataset.state = 'over';
+        container.dataset.hit = 'true';
+        showHint();
+        setMessage('Perdu ! Touchez pour rejouer.');
+        flashEl.getBoundingClientRect();
+        flashEl.style.opacity = '1';
+        window.setTimeout(() => {
+          flashEl.style.opacity = '0';
+        }, 90);
+      }
+
+      function jump() {
+        if (gameState === 'ready') {
+          setMessage('Esquivez les cactus et montez de niveau.');
+          resetGame();
+          return;
+        }
+        if (gameState !== 'running') {
+          if (gameState === 'over') {
+            resetGame();
+          }
+          return;
+        }
+        if (dinoY === 0) {
+          velocityY = JUMP_VELOCITY;
+          container.dataset.hit = 'false';
+        }
+      }
+
+      function handleKey(event) {
+        const keys = [' ', 'Spacebar', 'ArrowUp'];
+        if (keys.includes(event.key)) {
+          event.preventDefault();
+          jump();
+        }
+      }
+
+      function handlePointer(event) {
+        event.preventDefault();
+        jump();
+      }
+
+      function handleResize() {
+        worldWidth = container.clientWidth;
+      }
+
+      window.addEventListener('keydown', handleKey);
+      container.addEventListener('pointerdown', handlePointer, { passive: false });
+      window.addEventListener('resize', handleResize);
+
+      window.requestAnimationFrame(step);
+    })();
+  </script>
+</body>
+</html>
