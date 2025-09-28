@@ -1,540 +1,190 @@
-<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dino — Attendre le renfort.. + Badges</title>
-  <style>
-    :root {
-      --bg: #0b0f1a;
-      --fg: #e9eef7;
-      --accent: #ffb703;
-      --accent-2: #ffd700;
-      --muted: #9aa7bd;
-      --danger: #ff4d5a;
-      --ok: #33d69f;
+<style>
+  #dino-game {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    height: 260px;
+    background: linear-gradient(#cce6ff, #f0f8ff);
+    border: 2px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 0 auto;
+  }
+  .ground {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 40px;
+    background: #6b8e23;
+  }
+  .dino {
+    position: absolute;
+    left: 40px;
+    bottom: 40px;
+    width: 40px;
+    height: 40px;
+    background: #333;
+    border-radius: 6px;
+  }
+  .dino::after {
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: 24px;
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    border-radius: 50%;
+  }
+  .cactus {
+    position: absolute;
+    bottom: 40px;
+    right: -40px;
+    width: 24px;
+    height: 50px;
+    background: #2e8b57;
+    border-radius: 3px;
+  }
+  .hud {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.8);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  .message {
+    position: absolute;
+    bottom: 50%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+    background: rgba(255,255,255,0.9);
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+  }
+</style>
 
-      /* Couleurs de badges */
-      --b1: #6b7280;   /* base */
-      --b2: #22c55e;   /* futé */
-      --b3: #f59e0b;   /* confirmé */
-      --b4: #3b82f6;   /* élite */
-      --b5: #a855f7;   /* maître */
+<div id="dino-game">
+  <div class="hud">Niveau <span id="level">1</span> | Score <span id="score">0</span></div>
+  <div class="message" id="msg">Tapez l'écran pour sauter</div>
+  <div class="ground"></div>
+  <div class="dino" id="dino"></div>
+</div>
+
+<script>
+  const game = document.getElementById("dino-game");
+  const dino = document.getElementById("dino");
+  const scoreEl = document.getElementById("score");
+  const levelEl = document.getElementById("level");
+  const msg = document.getElementById("msg");
+
+  let isJumping = false;
+  let dinoY = 40;
+  let velocityY = 0;
+  let gravity = -0.6;
+  let score = 0;
+  let level = 1;
+  let speed = 3;
+  let obstacles = [];
+  let playing = false;
+
+  function jump() {
+    if (!isJumping && playing) {
+      velocityY = 12; // saut simple
+      isJumping = true;
     }
-
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
-      background: radial-gradient(1200px 800px at 50% -10%, #162039 0%, var(--bg) 55%);
-      color: var(--fg);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      padding: 16px;
+    if (!playing) {
+      startGame();
     }
+  }
 
-    .cta-wrap { text-align: center; margin: 6px 0 4px; }
-    .cta-wrap a {
-      display: inline-block;
-      padding: 12px 28px;
-      font-size: 18px;
-      font-weight: 700;
-      color: #fff;
-      background: var(--accent);
-      border-radius: 30px;
-      text-decoration: none;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-      transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+  function startGame() {
+    score = 0;
+    level = 1;
+    speed = 3;
+    obstacles.forEach(o => o.remove());
+    obstacles = [];
+    msg.style.display = "none";
+    playing = true;
+    requestAnimationFrame(update);
+  }
+
+  function gameOver() {
+    playing = false;
+    msg.textContent = "Perdu ! Tapez pour rejouer";
+    msg.style.display = "block";
+  }
+
+  function spawnCactus() {
+    const cactus = document.createElement("div");
+    cactus.className = "cactus";
+    cactus.style.right = "-40px";
+    game.appendChild(cactus);
+    obstacles.push(cactus);
+  }
+
+  function update() {
+    if (!playing) return;
+
+    // Update dino
+    dinoY += velocityY;
+    velocityY += gravity;
+    if (dinoY <= 40) {
+      dinoY = 40;
+      velocityY = 0;
+      isJumping = false;
     }
-    .cta-wrap a:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.35); filter: brightness(1.03); }
-    .cta-wrap a:active { transform: translateY(0); box-shadow: 0 3px 8px rgba(0,0,0,0.25); }
+    dino.style.bottom = dinoY + "px";
 
-    .frame {
-      width: min(900px, 96vw);
-      border-radius: 14px;
-      background: linear-gradient(180deg, #10182b 0%, #0d1426 100%);
-      box-shadow: 0 12px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06);
-      padding: 14px 14px 18px;
-    }
+    // Update obstacles
+    obstacles.forEach((cactus, index) => {
+      let x = parseInt(cactus.style.right);
+      x += speed;
+      cactus.style.right = x + "px";
 
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 10px;
-      font-size: 14px;
-      color: var(--muted);
-      flex-wrap: wrap;
-    }
-    .badges { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .badge {
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: #0a1224;
-      border: 1px solid rgba(255,255,255,0.06);
-      color: var(--fg);
-      font-weight: 700;
-      font-size: 12px;
-      letter-spacing: .2px;
-    }
-    .goal { color: var(--accent-2); font-weight: 800; }
-
-    .status {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-weight: 800;
-      font-size: 12px;
-      color: #0b0f1a;
-      background: #e5eefc;
-      border: 1px solid rgba(255,255,255,0.12);
-    }
-    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--b1); box-shadow: 0 0 0 2px rgba(0,0,0,0.15) inset; }
-    .status.b1 .dot { background: var(--b1); }
-    .status.b2 .dot { background: var(--b2); }
-    .status.b3 .dot { background: var(--b3); }
-    .status.b4 .dot { background: var(--b4); }
-    .status.b5 .dot { background: var(--b5); }
-
-    .bestStatus {
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: #0a1224;
-      border: 1px solid rgba(255,255,255,0.06);
-      color: var(--fg);
-      font-weight: 700;
-      font-size: 12px;
-    }
-
-    canvas {
-      width: 100%;
-      height: auto;
-      display: block;
-      border-radius: 10px;
-      background: linear-gradient(#0d1530 0%, #0b1126 60%, #0a1022 100%);
-      outline: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .hint {
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 13px;
-      text-align: center;
-    }
-
-    .controls { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
-    .btn {
-      padding: 8px 12px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: #0a1224;
-      color: var(--fg);
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .btn:active { transform: translateY(1px); }
-
-    @media (max-width: 480px){
-      .topbar { font-size: 13px; }
-      .badge { font-size: 11px; }
-      .cta-wrap a { font-size: 16px; padding: 10px 22px; }
-    }
-  </style>
-</head>
-<body>
-  <div class="cta-wrap">
-    <a href="https://aurel92i.github.io/dino/" target="_blank" rel="noopener">
-      Attendre le renfort..
-    </a>
-  </div>
-
-  <div class="frame">
-    <div class="topbar">
-      <div class="badges">
-        <span class="badge">Score: <span id="score">0</span></span>
-        <span class="badge">Record: <span id="hiscore">0</span></span>
-        <span class="badge">Vitesse: <span id="speedView">0</span></span>
-        <span class="bestStatus" id="bestStatusView">Meilleur statut: —</span>
-      </div>
-      <div style="display:flex; align-items:center; gap:10px;">
-        <div class="status b1" id="statusBadge">
-          <span class="dot"></span>
-          <span id="statusText">Gazier de base</span>
-        </div>
-        <div class="goal">Fais <span id="goal">50</span> pour gagner un B1 !</div>
-      </div>
-    </div>
-
-    <canvas id="game" width="900" height="260" aria-label="Dino Runner"></canvas>
-
-    <div class="controls">
-      <button class="btn" id="btnJump">Sauter ⤴</button>
-      <button class="btn" id="btnDuck">Se baisser ⤵</button>
-      <button class="btn" id="btnRestart" title="Redémarrer (R)">Recommencer</button>
-      <button class="btn" id="btnPause" title="Pause (P)">Pause</button>
-    </div>
-
-    <p class="hint">Contrôles : <strong>Espace</strong> ou <strong>Flèche ↑</strong> pour sauter,
-      <strong>Flèche ↓</strong> pour se baisser. <strong>R</strong> pour recommencer, <strong>P</strong> pour pause.
-      Cliquez / touchez le canvas pour sauter.</p>
-  </div>
-
-  <script>
-    // ---------- Badges / Statuts ----------
-    // Définir ici tes paliers et libellés
-    const STATUS_STEPS = [
-      { min:   0, max:  19, name: "Gazier de base",  css: "b1", rank: 1 },
-      { min:  20, max:  49, name: "Gazier futé",     css: "b2", rank: 2 },
-      { min:  50, max:  99, name: "Gazier confirmé", css: "b3", rank: 3 },
-      { min: 100, max: 149, name: "Gazier d’élite",  css: "b4", rank: 4 },
-      { min: 150, max: Infinity, name: "Maître Gazier", css: "b5", rank: 5 },
-    ];
-    const STORAGE_KEY = "bestScore";
-    const STORAGE_STATUS_RANK = "bestStatusRank";
-
-    function getStatus(score) {
-      for (const s of STATUS_STEPS) {
-        if (score >= s.min && score <= s.max) return s;
+      // Collision
+      const dinoRect = dino.getBoundingClientRect();
+      const cactusRect = cactus.getBoundingClientRect();
+      if (
+        dinoRect.right > cactusRect.left &&
+        dinoRect.left < cactusRect.right &&
+        dinoRect.bottom > cactusRect.top
+      ) {
+        gameOver();
       }
-      return STATUS_STEPS[0];
-    }
 
-    // ---------- Objectif affiché ----------
-    const GOAL_SCORE = 50;
-    document.getElementById('goal').textContent = GOAL_SCORE;
+      // remove off-screen
+      if (x > game.offsetWidth + 50) {
+        cactus.remove();
+        obstacles.splice(index, 1);
+        score++;
+        scoreEl.textContent = score;
 
-    // ---------- État global ----------
-    let bestScore = parseInt(localStorage.getItem(STORAGE_KEY)) || 0;
-    let bestStatusRank = parseInt(localStorage.getItem(STORAGE_STATUS_RANK)) || 0;
-
-    let score = 0;
-    let gameOver = false;
-    let paused = false;
-
-    // Vitesse (px/s)
-    let speed = 420;  // initiale
-    let accel = 6;    // augmentation (px/s)/s
-
-    // Cadence
-    let lastTime = 0;
-
-    // Canvas
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
-
-    // HiDPI
-    (function setupHiDPI() {
-      const ratio = Math.max(1, Math.floor(window.devicePixelRatio || 1));
-      const cssW = canvas.clientWidth;
-      const cssH = canvas.clientHeight;
-      canvas.width = Math.round(cssW * ratio);
-      canvas.height = Math.round(cssH * ratio);
-      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    })();
-
-    // ---------- Joueur ----------
-    const player = { x: 80, y: 0, w: 42, h: 46, vy: 0, onGround: false, ducking: false };
-    const GROUND_Y = 190;
-    const GRAVITY = 1900;
-    const JUMP_V = -620;
-
-    // ---------- Obstacles ----------
-    const obstacles = [];
-    const MIN_GAP = 360;
-    const MAX_GAP = 620;
-    const OBH_RANGE = [30, 52];
-    const OBW_RANGE = [16, 28];
-
-    // ---------- Décor ----------
-    const clouds = [];
-    for (let i = 0; i < 6; i++) {
-      clouds.push({ x: Math.random()*canvas.width, y: 40+Math.random()*70, w: 60+Math.random()*40, h: 18+Math.random()*6, v: 18+Math.random()*16 });
-    }
-
-    // ---------- UI refs ----------
-    const scoreEl = document.getElementById('score');
-    const hiEl = document.getElementById('hiscore');
-    const speedView = document.getElementById('speedView');
-    const statusBadge = document.getElementById('statusBadge');
-    const statusText = document.getElementById('statusText');
-    const bestStatusView = document.getElementById('bestStatusView');
-
-    const btnJump = document.getElementById('btnJump');
-    const btnDuck = document.getElementById('btnDuck');
-    const btnRestart = document.getElementById('btnRestart');
-    const btnPause = document.getElementById('btnPause');
-
-    hiEl.textContent = bestScore;
-    updateBestStatusView();
-
-    // ---------- Utils ----------
-    function rand(min, max) { return Math.random() * (max - min) + min; }
-    function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
-
-    function spawnObstacle() {
-      const dynMaxGap = Math.max(280, MAX_GAP - (speed - 420) * 0.6);
-      const last = obstacles[obstacles.length - 1];
-      const startX = last ? last.x + rand(MIN_GAP, dynMaxGap) : canvas.width + rand(120, dynMaxGap);
-      obstacles.push({ x: startX, y: GROUND_Y - 6, w: rand(OBW_RANGE[0], OBW_RANGE[1]), h: rand(OBH_RANGE[0], OBH_RANGE[1]), passed: false });
-    }
-    for (let i = 0; i < 4; i++) spawnObstacle();
-
-    // ---------- Entrées ----------
-    function jump() {
-      if (gameOver || paused) return;
-      if (player.onGround) { player.vy = JUMP_V; player.onGround = false; }
-    }
-    function duck(down) {
-      if (gameOver || paused) return;
-      player.ducking = !!down;
-    }
-
-    window.addEventListener('keydown', (e) => {
-      if (e.repeat) return;
-      if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); jump(); }
-      if (e.code === 'ArrowDown') { e.preventDefault(); duck(true); }
-      if (e.code === 'KeyR') { e.preventDefault(); restart(); }
-      if (e.code === 'KeyP') { e.preventDefault(); togglePause(); }
-    });
-    window.addEventListener('keyup', (e) => { if (e.code === 'ArrowDown') duck(false); });
-
-    canvas.addEventListener('pointerdown', jump);
-    btnJump.addEventListener('click', jump);
-    btnDuck.addEventListener('pointerdown', () => duck(true));
-    btnDuck.addEventListener('pointerup', () => duck(false));
-    btnRestart.addEventListener('click', () => restart(true));
-    btnPause.addEventListener('click', togglePause);
-
-    // ---------- Boucle jeu ----------
-    function update(dt) {
-      if (paused || gameOver) return;
-
-      // accélération & score
-      speed += accel * dt;
-      score += dt * 5;
-
-      const sInt = Math.floor(score);
-      scoreEl.textContent = sInt;
-      speedView.textContent = Math.round(speed);
-
-      // statut dynamique
-      const status = getStatus(sInt);
-      applyStatus(status);
-
-      // joueur
-      const targetH = player.ducking ? 30 : 46;
-      player.h += (targetH - player.h) * Math.min(1, dt * 16);
-
-      player.vy += GRAVITY * dt;
-      player.y += player.vy * dt;
-      const groundTop = GROUND_Y - player.h;
-      if (player.y > groundTop) { player.y = groundTop; player.vy = 0; player.onGround = true; }
-
-      // obstacles
-      for (const ob of obstacles) ob.x -= speed * dt;
-      while (obstacles.length && obstacles[0].x + obstacles[0].w < -20) obstacles.shift();
-      if (obstacles.length < 4) spawnObstacle();
-
-      // collisions
-      for (const ob of obstacles) {
-        if (rectsOverlap(player.x, player.y, player.w, player.h, ob.x, ob.y - ob.h, ob.w, ob.h)) {
-          gameOver = true;
-
-          // Maj best score
-          const final = Math.floor(score);
-          bestScore = Math.max(bestScore, final);
-          localStorage.setItem(STORAGE_KEY, bestScore);
-          hiEl.textContent = bestScore;
-
-          // Maj meilleur statut
-          const lastStatus = getStatus(final);
-          if (lastStatus.rank > bestStatusRank) {
-            bestStatusRank = lastStatus.rank;
-            localStorage.setItem(STORAGE_STATUS_RANK, bestStatusRank);
-            updateBestStatusView();
-          }
-          break;
+        // Niveaux
+        if (score % 5 === 0) {
+          level++;
+          levelEl.textContent = level;
+          speed += 0.5;
         }
       }
+    });
+
+    // Spawn cactus aléatoire
+    if (Math.random() < 0.02) {
+      spawnCactus();
     }
 
-    function applyStatus(status) {
-      statusText.textContent = status.name;
-      statusBadge.classList.remove("b1","b2","b3","b4","b5");
-      statusBadge.classList.add(status.css);
-    }
+    requestAnimationFrame(update);
+  }
 
-    function updateBestStatusView() {
-      const best = STATUS_STEPS.find(s => s.rank === bestStatusRank);
-      bestStatusView.textContent = best ? `Meilleur statut: ${best.name}` : "Meilleur statut: —";
-    }
-
-    function rectsOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
-      return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      drawGround();
-
-      // nuages
-      for (const c of clouds) {
-        c.x -= c.v * (paused || gameOver ? 0 : 1) * 1/60 * 60/60;
-        if (c.x + c.w < -20) c.x = canvas.width + Math.random() * 120;
-        drawCloud(c);
-      }
-
-      // obstacles
-      ctx.fillStyle = "#cbd5e1";
-      for (const ob of obstacles) roundedRect(ob.x, ob.y - ob.h, ob.w, ob.h, 3);
-
-      // joueur
-      drawDino(player);
-
-      // HUD supplémentaire
-      ctx.font = 'bold 16px system-ui';
-      ctx.textAlign = 'left';
-      ctx.fillStyle = '#ffd700';
-      ctx.fillText(`Fais ${GOAL_SCORE} pour gagner un B1 !`, 16, 40);
-
-      if (Math.floor(score) >= GOAL_SCORE && !gameOver) {
-        ctx.font = '700 22px system-ui';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#33d69f';
-        ctx.fillText('🎉 B1 Débloqué ! Bravo !', canvas.width / 2, 40);
-      }
-
-      if (paused) {
-        overlayMessage('PAUSE', 'Appuie sur P pour reprendre');
-      } else if (gameOver) {
-        const final = Math.floor(score);
-        const st = getStatus(final);
-        overlayMessage('GAME OVER', `Score: ${final} — Statut: ${st.name} (R pour recommencer)`);
-      }
-    }
-
-    function loop(ts) {
-      if (!lastTime) lastTime = ts;
-      const dt = clamp((ts - lastTime) / 1000, 0, 0.05);
-      lastTime = ts;
-
-      update(dt);
-      draw();
-
-      requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
-
-    // ---------- Dessin helpers ----------
-    function drawGround() {
-      const y = GROUND_Y + 2.5;
-      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
-      ctx.stroke();
-
-      ctx.fillStyle = 'rgba(255,255,255,0.05)';
-      for (let i = 0; i < 18; i++) {
-        const rx = (i * 60 + (performance.now() / 10) % 60) % (canvas.width + 60) - 20;
-        ctx.fillRect(rx, y + 6 + (i % 2) * 2, 10, 2);
-      }
-    }
-
-    function drawCloud(c) {
-      ctx.save();
-      ctx.globalAlpha = 0.5;
-      ctx.fillStyle = '#93a3b8';
-      roundedRect(c.x, c.y, c.w, c.h, 10);
-      ctx.restore();
-    }
-
-    function drawDino(p) {
-      const x = p.x, y = p.y, w = p.w, h = p.h;
-
-      // Ombre
-      ctx.fillStyle = 'rgba(0,0,0,0.25)';
-      ctx.beginPath();
-      ctx.ellipse(x + w/2, GROUND_Y + 5, w*0.55, 5, 0, 0, Math.PI*2);
-      ctx.fill();
-
-      // Corps
-      ctx.fillStyle = '#e5eefc';
-      roundedRect(x, y, w, h, 6);
-
-      // Tête
-      const th = h * 0.52;
-      roundedRect(x + w*0.55, y - th*0.15, w*0.6, th, 6);
-
-      // Œil
-      ctx.fillStyle = '#0b0f1a';
-      ctx.fillRect(x + w*0.95, y + h*0.1, 3, 3);
-
-      // Jambes anim
-      ctx.fillStyle = '#d4def0';
-      const t = performance.now() / 100;
-      const s = (Math.sin(t) > 0) ? 1 : -1;
-      const legH = Math.max(10, h*0.28);
-      ctx.fillRect(x + w*0.15, y + h - legH, 5, legH);
-      ctx.fillRect(x + w*0.35, y + h - legH*(0.9 + 0.08*s), 5, legH*(0.9 + 0.08*s));
-    }
-
-    function roundedRect(x, y, w, h, r) {
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.arcTo(x + w, y, x + w, y + h, r);
-      ctx.arcTo(x + w, y + h, x, y + h, r);
-      ctx.arcTo(x, y + h, x, y, r);
-      ctx.arcTo(x, y, x + w, y, r);
-      ctx.closePath();
-      ctx.fill();
-    }
-
-    function overlayMessage(title, subtitle) {
-      ctx.save();
-      ctx.fillStyle = 'rgba(0,0,0,0.45)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.font = '800 34px system-ui';
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(title, canvas.width/2, canvas.height/2 - 6);
-      ctx.font = '600 16px system-ui';
-      ctx.fillStyle = 'rgba(255,255,255,0.85)';
-      ctx.fillText(subtitle, canvas.width/2, canvas.height/2 + 20);
-      ctx.restore();
-    }
-
-    // ---------- Contrôles système ----------
-    function restart(full = false) {
-      // Lorsque l'on perd, les meilleurs stats sont déjà mises à jour dans update()
-      score = 0;
-      speed = 420;
-      player.x = 80; player.y = GROUND_Y - player.h; player.vy = 0;
-      player.onGround = true; player.ducking = false;
-      obstacles.length = 0;
-      for (let i = 0; i < 4; i++) spawnObstacle();
-      gameOver = false;
-      if (full) paused = false;
-
-      // Réinitialiser affichage du statut courant
-      applyStatus(getStatus(0));
-    }
-
-    function togglePause() { paused = !paused; }
-
-    // Démarrage propre
-    restart(true);
-
-    // Exposition debug
-    window.__dino = { restart, togglePause, getStatus };
-  </script>
-</body>
-</html>
+  // Contrôles
+  game.addEventListener("click", jump);
+  document.addEventListener("keydown", e => {
+    if (e.code === "Space" || e.code === "ArrowUp") jump();
+  });
+</script>
