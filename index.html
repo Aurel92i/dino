@@ -13,8 +13,8 @@
     }
     body {
       margin: 0;
-      padding: clamp(16px, 6vw, 40px);
-      background: linear-gradient(180deg, #78c3ff 0%, #a0ddff 60%, #fdf4d6 100%);
+      padding: clamp(18px, 6vw, 48px);
+      background: linear-gradient(180deg, #6cb4ff 0%, #8fd1ff 60%, #fdf4cc 100%);
       font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       display: flex;
       justify-content: center;
@@ -23,18 +23,18 @@
     }
     #gazier-runner {
       position: relative;
-      width: min(460px, 96vw);
-      height: clamp(220px, 54vh, 340px);
-      background: linear-gradient(#9dd8ff 0%, #e9f7ff 70%, #f8d7a0 100%);
-      border: 3px solid #2e4a7a;
-      border-radius: 18px;
+      width: min(520px, 96vw);
+      height: clamp(260px, 60vh, 360px);
+      background: linear-gradient(#96d7ff 0%, #e4f5ff 70%, #f5d79a 100%);
+      border: 3px solid #25366b;
+      border-radius: 20px;
       overflow: hidden;
       user-select: none;
       touch-action: manipulation;
-      box-shadow: 0 22px 48px rgba(18, 57, 104, 0.22);
+      box-shadow: 0 24px 54px rgba(23, 58, 110, 0.24);
     }
     #gazier-runner[data-state="over"] {
-      filter: grayscale(0.35);
+      filter: grayscale(0.45);
     }
     #gazier-runner .sky {
       position: absolute;
@@ -44,18 +44,33 @@
     #gazier-runner .cloud {
       position: absolute;
       top: 12%;
-      width: 20%;
-      height: 26px;
-      background: rgba(255, 255, 255, 0.82);
-      border-radius: 22px;
-      box-shadow: 18px 6px 0 rgba(255, 255, 255, 0.74), 38px 10px 0 rgba(255, 255, 255, 0.68);
+      width: 22%;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.88);
+      border-radius: 20px;
+      box-shadow: 20px 6px 0 rgba(255, 255, 255, 0.78), 44px 10px 0 rgba(255, 255, 255, 0.7);
       pointer-events: none;
     }
     #gazier-runner .cloud:nth-child(2) {
-      top: 26%;
+      top: 28%;
       width: 16%;
       height: 22px;
       opacity: 0.92;
+    }
+    #gazier-runner .hill {
+      position: absolute;
+      bottom: 38px;
+      width: 32%;
+      height: 28%;
+      background: radial-gradient(circle at 50% 120%, #2b7a3d 0 52%, rgba(43, 122, 61, 0) 55%);
+      z-index: 1;
+    }
+    #gazier-runner .hill:nth-of-type(3) {
+      left: 6%;
+    }
+    #gazier-runner .hill:nth-of-type(4) {
+      right: 12%;
+      width: 26%;
     }
     #gazier-runner .hud {
       position: absolute;
@@ -65,7 +80,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      font-size: clamp(13px, 3.4vw, 16px);
+      font-size: clamp(13px, 3.6vw, 16px);
       text-transform: uppercase;
       font-weight: 700;
       letter-spacing: 0.6px;
@@ -75,32 +90,32 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      min-width: 156px;
-      padding: 8px 14px;
-      border-radius: 12px;
-      background: rgba(255, 249, 230, 0.9);
-      color: #2f1f0f;
-      box-shadow: 0 10px 24px rgba(82, 52, 18, 0.16);
+      min-width: 170px;
+      padding: 8px 16px;
+      border-radius: 14px;
+      background: rgba(255, 246, 214, 0.92);
+      color: #2c1b0c;
       border: 2px solid #f4c96a;
+      box-shadow: 0 12px 26px rgba(71, 45, 16, 0.18);
     }
     #gazier-runner .hud-item .value {
       font-family: "Courier New", monospace;
       font-variant-numeric: tabular-nums;
-      color: #0d6a44;
+      color: #0b6b3d;
     }
     #gazier-runner .message {
       position: absolute;
-      inset: auto 10% 12%;
-      padding: 14px 18px;
-      background: rgba(255, 240, 210, 0.92);
-      border: 3px solid #f2c162;
-      border-radius: 14px;
-      color: #3c260e;
-      font-size: clamp(13px, 3.8vw, 17px);
-      line-height: 1.45;
+      inset: auto 12% 14%;
+      padding: 16px 20px;
+      background: rgba(255, 238, 204, 0.94);
+      border: 3px solid #f1c05b;
+      border-radius: 16px;
+      color: #3b250c;
+      font-size: clamp(14px, 3.8vw, 18px);
+      line-height: 1.5;
       text-align: center;
       z-index: 12;
-      box-shadow: 0 18px 28px rgba(57, 38, 16, 0.18);
+      box-shadow: 0 18px 32px rgba(52, 32, 12, 0.18);
       transition: opacity 220ms ease;
     }
     #gazier-runner[data-hint="hidden"] .message {
@@ -110,7 +125,7 @@
     #gazier-runner .flash {
       position: absolute;
       inset: 0;
-      background: rgba(255, 255, 255, 0.55);
+      background: rgba(255, 255, 255, 0.6);
       opacity: 0;
       pointer-events: none;
       transition: opacity 160ms ease-out;
@@ -122,7 +137,7 @@
     #gazier-runner .ground-wrapper {
       position: absolute;
       inset: auto 0 0;
-      height: 38px;
+      height: 46px;
       overflow: hidden;
       z-index: 2;
     }
@@ -130,109 +145,204 @@
       position: absolute;
       bottom: 0;
       width: 220%;
-      height: 38px;
+      height: 46px;
       background:
-        linear-gradient(#9f5a34 0 10%, #6f3218 10% 28%, #d8904c 28% 100%);
+        linear-gradient(#f7b347 0 12%, #b96528 12% 40%, #f18632 40% 60%, #7a3a1c 60% 100%);
     }
     #gazier-runner .ground::before {
       content: "";
       position: absolute;
-      inset: 10px 0 0;
+      inset: 14px 0 0;
       background:
-        repeating-linear-gradient(90deg, rgba(59, 26, 8, 0.35) 0 48px, transparent 48px 52px),
-        repeating-linear-gradient(#f2b46a 0 20px, #c2723b 20px 24px);
-      opacity: 0.75;
+        repeating-linear-gradient(90deg, rgba(54, 26, 7, 0.34) 0 52px, transparent 52px 58px),
+        repeating-linear-gradient(#fcd872 0 24px, #e48c36 24px 30px);
+      opacity: 0.85;
     }
     #gazier-runner .line {
       position: absolute;
       top: -12px;
       left: 0;
       width: 200%;
-      height: 12px;
-      background:
-        linear-gradient(#f7e1ac, #d0974a);
-      box-shadow: inset 0 -4px 0 rgba(55, 23, 6, 0.28);
+      height: 14px;
+      background: linear-gradient(#f8e0af, #d18736);
+      box-shadow: inset 0 -4px 0 rgba(63, 32, 10, 0.26);
     }
     #gazier-runner .gazier {
       position: absolute;
-      left: 16%;
-      bottom: 38px;
-      width: clamp(46px, 7vw, 64px);
-      height: clamp(56px, 8.5vw, 78px);
-      border-radius: 14px;
-      background:
-        radial-gradient(circle at 50% 26%, #f5b579 0 18%, transparent 19%),
-        radial-gradient(circle at 36% 28%, #1e1e1e 0 5%, transparent 6%),
-        radial-gradient(circle at 64% 28%, #1e1e1e 0 5%, transparent 6%),
-        radial-gradient(circle at 50% 38%, #ef9d5e 0 6%, transparent 7%),
-        linear-gradient(180deg, #fbe1be 0 38%, #d63c2e 38% 52%, #1764d7 52% 82%, #0e3a7a 82% 100%);
-      box-shadow: 0 10px 0 rgba(0, 0, 0, 0.08);
+      left: 18%;
+      bottom: 46px;
+      width: clamp(50px, 8vw, 72px);
+      height: clamp(66px, 10vw, 92px);
       z-index: 4;
-      transition: filter 120ms ease-in-out;
+      transform-origin: center bottom;
     }
-    #gazier-runner .gazier::before {
-      content: "G";
+    .gazier__body,
+    .gazier__head,
+    .gazier__arm,
+    .gazier__leg {
       position: absolute;
-      top: -22%;
-      left: 14%;
-      width: 72%;
-      height: 36%;
+    }
+    .gazier__body {
+      bottom: 16px;
+      left: 12px;
+      width: calc(100% - 24px);
+      height: calc(100% - 28px);
+      border-radius: 12px;
+      background:
+        linear-gradient(180deg, #fce0b7 0 42%, #e03d2f 42% 58%, #1657cf 58% 88%, #0b2f6e 88% 100%);
+      border: 3px solid #0f275a;
+      box-shadow: inset -4px 0 0 rgba(0, 0, 0, 0.12);
+    }
+    .gazier__head {
+      top: 0;
+      left: 18px;
+      width: calc(100% - 36px);
+      height: 44%;
+      border-radius: 14px 14px 12px 12px;
+      background: linear-gradient(180deg, #f9d19c, #f0b16f);
+      border: 3px solid #47210a;
+    }
+    .gazier__head::before {
+      content: "";
+      position: absolute;
+      left: 20%;
+      top: 34%;
+      width: 60%;
+      height: 16%;
+      background: radial-gradient(circle, #1f1f1f 0 55%, transparent 58%);
+      border-radius: 50% / 60%;
+      box-shadow: -10px 4px 0 #1f1f1f, 10px 4px 0 #1f1f1f;
+    }
+    .gazier__head::after {
+      content: "";
+      position: absolute;
+      left: 18%;
+      bottom: 24%;
+      width: 64%;
+      height: 18%;
+      border-radius: 0 0 60% 60%;
+      background: #c4512a;
+    }
+    .gazier__cap {
+      position: absolute;
+      top: -18px;
+      left: 8px;
+      width: calc(100% - 16px);
+      height: 40px;
+      background: linear-gradient(#e83e2f, #aa1616);
+      border-radius: 20px 20px 60% 60%;
+      border: 3px solid #6b0509;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 50% 50% 65% 65%;
-      background: linear-gradient(#e43c2d, #b31615);
-      border: 3px solid #741012;
-      color: #fff;
       font-weight: 700;
-      font-size: clamp(15px, 2.6vw, 18px);
-      text-shadow: 0 1px 0 #4a0708;
+      color: #fff;
       letter-spacing: 1px;
+      text-shadow: 0 1px 0 #4c0406;
     }
-    #gazier-runner .gazier::after {
+    .gazier__arm {
+      top: 44%;
+      width: 16px;
+      height: 30px;
+      border-radius: 8px;
+      background: linear-gradient(#f8c99a, #d57c3f);
+      border: 3px solid #47210a;
+      transform-origin: top center;
+    }
+    .gazier__arm--front {
+      left: 4px;
+    }
+    .gazier__arm--back {
+      right: 4px;
+    }
+    .gazier__leg {
+      bottom: 0;
+      width: 18px;
+      height: 32px;
+      background: linear-gradient(#1657cf, #0f3a94);
+      border: 3px solid #0f275a;
+      border-radius: 6px;
+      transform-origin: top center;
+    }
+    .gazier__leg::after {
       content: "";
       position: absolute;
-      left: 28%;
-      top: 44%;
-      width: 44%;
-      height: 18%;
-      background: radial-gradient(circle, #3a1b08 0 58%, transparent 60%);
-      border-radius: 50% / 60%;
-      box-shadow: -8px 2px 0 #3a1b08, 8px 2px 0 #3a1b08;
-      transform: scaleY(0.9);
+      left: -6px;
+      bottom: -10px;
+      width: 30px;
+      height: 12px;
+      border-radius: 8px;
+      background: #0f275a;
+    }
+    .gazier__leg--front {
+      left: 12px;
+    }
+    .gazier__leg--back {
+      right: 12px;
+    }
+    .gazier.is-running .gazier__leg--front {
+      animation: leg-run 260ms linear infinite;
+    }
+    .gazier.is-running .gazier__leg--back {
+      animation: leg-run 260ms linear infinite reverse;
+    }
+    .gazier.is-running .gazier__arm--front {
+      animation: arm-run 320ms linear infinite;
+    }
+    .gazier.is-running .gazier__arm--back {
+      animation: arm-run 320ms linear infinite reverse;
+    }
+    .gazier.is-jumping {
+      animation: jump-tilt 380ms ease-out forwards;
+    }
+    @keyframes leg-run {
+      0% { transform: rotate(18deg); }
+      50% { transform: rotate(-22deg); }
+      100% { transform: rotate(18deg); }
+    }
+    @keyframes arm-run {
+      0% { transform: rotate(-24deg); }
+      50% { transform: rotate(18deg); }
+      100% { transform: rotate(-24deg); }
+    }
+    @keyframes jump-tilt {
+      0% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-4px) rotate(-4deg); }
+      100% { transform: translateY(0) rotate(0deg); }
     }
     #gazier-runner .obstacle {
       position: absolute;
-      bottom: 38px;
-      width: clamp(34px, 7vw, 50px);
-      height: clamp(60px, 16vw, 110px);
-      background:
-        linear-gradient(180deg, #34b24a 0 14%, #2f9640 14% 84%, #1d6b2c 84% 100%);
-      border-radius: 6px 6px 2px 2px;
-      border: 3px solid #1d6b2c;
+      bottom: 46px;
+      width: clamp(38px, 8vw, 54px);
+      height: clamp(70px, 22vw, 140px);
+      background: linear-gradient(180deg, #39b24a 0 12%, #2f9c40 12% 88%, #1e6c2c 88% 100%);
+      border-radius: 6px 6px 4px 4px;
+      border: 3px solid #1f6f2d;
       box-shadow: inset 6px 0 0 rgba(255, 255, 255, 0.12);
       z-index: 3;
     }
     #gazier-runner .obstacle.little {
-      height: clamp(50px, 12vw, 92px);
+      height: clamp(60px, 18vw, 120px);
     }
     #gazier-runner .obstacle.tall {
-      height: clamp(78px, 20vw, 140px);
-      background:
-        linear-gradient(180deg, #2e9e44 0 10%, #29a140 10% 80%, #1a6a2c 80% 100%);
+      height: clamp(90px, 26vw, 160px);
     }
     @media (min-width: 720px) {
       #gazier-runner {
-        width: 520px;
-        height: 340px;
+        width: 560px;
+        height: 360px;
       }
       #gazier-runner .hud {
         flex-direction: row;
         gap: 12px;
       }
+      #gazier-runner .hud-item {
+        min-width: 150px;
+      }
     }
     @media (prefers-reduced-motion: reduce) {
-      #gazier-runner {
+      #gazier-runner,
+      .gazier {
         animation-duration: 0s !important;
         transition-duration: 0s !important;
       }
@@ -242,8 +352,10 @@
 <body>
   <div id="gazier-runner" data-state="ready" data-hint="visible" data-hit="false">
     <div class="sky">
-      <div class="cloud" style="left:16%;"></div>
-      <div class="cloud" style="left:62%;"></div>
+      <div class="cloud" style="left:14%;"></div>
+      <div class="cloud" style="left:64%;"></div>
+      <div class="hill"></div>
+      <div class="hill"></div>
     </div>
     <div class="hud">
       <div class="hud-item">
@@ -260,14 +372,22 @@
       </div>
     </div>
     <div class="message" data-message>
-      Touchez l'écran pour faire sauter Gazier !
+      Touchez l'écran pour faire courir Gazier !
     </div>
     <div class="flash"></div>
     <div class="ground-wrapper">
       <div class="line"></div>
       <div class="ground"></div>
     </div>
-    <div class="gazier" data-gazier></div>
+    <div class="gazier" data-gazier>
+      <div class="gazier__body"></div>
+      <div class="gazier__head"></div>
+      <div class="gazier__cap">G</div>
+      <div class="gazier__arm gazier__arm--front"></div>
+      <div class="gazier__arm gazier__arm--back"></div>
+      <div class="gazier__leg gazier__leg--front"></div>
+      <div class="gazier__leg gazier__leg--back"></div>
+    </div>
   </div>
 
   <script>
@@ -286,15 +406,15 @@
       const bestLevelEl = container.querySelector('[data-best-level]');
       const flashEl = container.querySelector('.flash');
 
-      const GROUND_HEIGHT = 38;
-      const BASE_SPEED = 280;
-      const MAX_SPEED = 680;
-      const SPEED_ACCEL = 70;
-      const GRAVITY = 2200;
-      const JUMP_VELOCITY = 760;
-      const LEVEL_INTERVAL = 450;
-      const OBSTACLE_GAP_MIN = 760;
-      const OBSTACLE_GAP_MAX = 1240;
+      const GROUND_HEIGHT = 46;
+      const BASE_SPEED = 320;
+      const MAX_SPEED = 760;
+      const SPEED_ACCEL = 80;
+      const GRAVITY = 2250;
+      const JUMP_VELOCITY = 800;
+      const LEVEL_INTERVAL = 480;
+      const OBSTACLE_GAP_MIN = 820;
+      const OBSTACLE_GAP_MAX = 1360;
 
       let worldWidth = container.clientWidth;
       let lastTime = null;
@@ -311,6 +431,7 @@
       levelEl.textContent = formatLevel(level);
       bestLevelEl.textContent = formatLevel(bestLevel);
       scoreEl.textContent = formatScore(score);
+      gazierEl.classList.add('is-running');
 
       function randomGap() {
         return Math.random() * (OBSTACLE_GAP_MAX - OBSTACLE_GAP_MIN) + OBSTACLE_GAP_MIN;
@@ -357,7 +478,7 @@
       }
 
       function updateScore(deltaSeconds) {
-        score += deltaSeconds * 100;
+        score += deltaSeconds * 120;
         if (score < 0) score = 0;
         scoreEl.textContent = formatScore(score);
         updateLevel();
@@ -379,22 +500,29 @@
       function updateGazier() {
         const bottom = GROUND_HEIGHT + gazierY;
         gazierEl.style.bottom = bottom + 'px';
+        if (gazierY === 0) {
+          gazierEl.classList.add('is-running');
+          gazierEl.classList.remove('is-jumping');
+        } else {
+          gazierEl.classList.add('is-jumping');
+          gazierEl.classList.remove('is-running');
+        }
       }
 
       function spawnObstacle() {
         const obstacleEl = document.createElement('div');
-        obstacleEl.className = 'obstacle pipe';
-        if (Math.random() > 0.6) {
+        obstacleEl.className = 'obstacle';
+        if (Math.random() > 0.65) {
           obstacleEl.classList.add('little');
-        } else if (Math.random() > 0.6) {
+        } else if (Math.random() > 0.7) {
           obstacleEl.classList.add('tall');
         }
         container.appendChild(obstacleEl);
         const rect = obstacleEl.getBoundingClientRect();
         const obstacle = {
           el: obstacleEl,
-          width: rect.width || 40,
-          height: rect.height || 80,
+          width: rect.width || 42,
+          height: rect.height || 90,
           x: worldWidth
         };
         obstacleEl.style.transform = 'translateX(' + Math.round(obstacle.x) + 'px)';
@@ -441,10 +569,10 @@
         return obstacles.some((obstacle) => {
           const rect = obstacle.el.getBoundingClientRect();
           return (
-            rect.left < gazierRect.right - 4 &&
-            rect.right > gazierRect.left + 4 &&
-            rect.top < gazierRect.bottom - 6 &&
-            rect.bottom > gazierRect.top + 6
+            rect.left < gazierRect.right - 6 &&
+            rect.right > gazierRect.left + 6 &&
+            rect.top < gazierRect.bottom - 10 &&
+            rect.bottom > gazierRect.top + 8
           );
         });
       }
@@ -480,12 +608,12 @@
         container.dataset.state = 'over';
         container.dataset.hit = 'true';
         showHint();
-        setMessage('Perdu ! Gazier repart en mission ? Touchez pour rejouer.');
+        setMessage('Oups ! Gazier repart en mission ? Touchez pour rejouer.');
         flashEl.getBoundingClientRect();
         flashEl.style.opacity = '1';
         window.setTimeout(() => {
           flashEl.style.opacity = '0';
-        }, 90);
+        }, 120);
       }
 
       function jump() {
